@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
+      <div class="container" data-aos="fade-up">
+
+        <div class="row">
+          <div class="col-lg-6 order-1 order-lg-2" data-aos="fade-left" data-aos-delay="100">
+            <img src="{% static 'img/cyber1.jpg' %}" class="img-fluid" alt="">
+          </div>
+          <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
+            <h3>Our company is more based on recent technologies and which are more secured and provide fast response</h3>
+            <p class="fst-italic">
+            Our team is composed with cyber security graduates thus they provide best security sevices and also good impression of the product
+            </p>
+            <ul>
+              <li><i class="ri-check-double-line"></i> We have high profile programmers.</li>
+              <li><i class="ri-check-double-line"></i> We provide with the best cyber knowledge.</li>
+              <li><i class="ri-check-double-line"></i> We provide best IT solution. To solve current cyber problems.</li>
+            </ul>
+            <p>
+              The technologies we use are jungle(Python), spring-boot(Java), Laravel(Php), Nodejs(Javascript), Angular(Javascript),
+              React(Javascript), and all tools for graphics design and Penetration are also deployed
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End About Section -->
+
+
+   
+    <!-- ======= Services Section ======= -->
+    <section id="services" class="services">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Services</h2>
+          <p>These are our Services</p>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="">Cyber Awareness</a></h4>
+              <p>We provide knowledge to workers about current cyber issues and ways to prevent them by conducting practical and theoretical
+                seminars
+              </p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="">App Development</a></h4>
+              <p>We develop mobile Apps both Android and IOS to provide best sevices to your clients</p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="300">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="">Graphic Design</a></h4>
+              <p>We design to impress and provide best visual impression to attract more customers</p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="">System and Web Development</a></h4>
+              <p>We use current technologies with best security packages</p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="{% url 'malware' %}">Malware Ananlysis</a></h4>
+              <p>We classify various malware variants based on APTs and other properties</p>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4" data-aos="zoom-in" data-aos-delay="300">
+            <div class="icon-box">
+              <div class="icon"></div>
+              <h4><a href="">Penetration Testing</a></h4>
+              <p>We use best Tools for both offensive and defensive security to ensure your company is secured</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Services Section -->
+
+   
+
+    <!-- ======= Portfolio Section ======= -->
+    <section id="portfolio" class="portfolio">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Tools</h2>
+          <p>Tools used in our Company</p>
+        </div>
+
+        <div class="row" data-aos="fade-up" data-aos-delay="100">
+          <div class="col-lg-12 d-flex justify-content-center">
+            
+          </div>
+        </div>
+
+        <div class="row portfolio-container" data-aos="fade-up" data-aos-delay="200">
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-app">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/kali.jpg' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Kali</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/kali.jpg' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-web">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/laravel.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Laravel</h4>
+               
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/laravel.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-app">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/react.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Reactjs</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/react.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-card">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/spring.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Spring Boot</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/spring.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-web">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/adobe.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Adobe</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/adobe.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-app">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/java.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Java</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/java.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-card">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/photoshop.png' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Photoshop</h4>
+               
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/photoshop.png' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-card">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/php.jpg' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Php</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/php.jpg' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6 portfolio-item filter-web">
+            <div class="portfolio-wrap">
+              <img src="{% static 'img/portfolio/python.jpg' %}" class="img-fluid" alt="">
+              <div class="portfolio-info">
+                <h4>Python</h4>
+                
+                <div class="portfolio-links">
+                  <a href="{% static 'img/portfolio/python.jpg' %}" data-gallery="portfolioGallery" class="portfolio-lightbox" title="CyberStar Company"><i class="bx bx-plus"></i></a>
+                
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Portfolio Section -->
+          </div>
+        </div>
+
+
+    <!-- ======= Contact Section ======= -->
+    <section id="contact" class="contact">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Contact</h2>
+          <p>Contact Us</p>
+        </div>
+
+       
+        <div class="row mt-5">
+
+          <div class="col-lg-4">
+            <div class="info">
+              <div class="address">
+                <i class="bi bi-geo-alt"></i>
+                <h4>Location:</h4>
+                <p>Arusha, Njiro</p>
+              </div>
+
+              <div class="email">
+                <i class="bi bi-envelope"></i>
+                <h4>Email:</h4>
+                <p>ismailmayumba@gmail.com</p>
+              </div>
+
+              <div class="phone">
+                <i class="bi bi-phone"></i>
+                <h4>Call:</h4>
+                <p>0693 470 308</p>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="col-lg-8 mt-5 mt-lg-0">
+
+            <form action="" method="post" role="form" class="php-email-form">
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>
+                </div>
+                <div class="col-md-6 form-group mt-3 mt-md-0">
+                  <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>
+                </div>
+              </div>
+              <div class="form-group mt-3">
+                <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required>
+              </div>
+              <div class="form-group mt-3">
+                <textarea class="form-control" name="message" rows="5" placeholder="Message" required></textarea>
+              </div>
+              <div class="my-3">
+                <div class="loading">Loading</div>
+                <div class="error-message"></div>
+                <div class="sent-message">Your message has been sent. Thank you!</div>
+              </div>
+              <div class="text-center"><button type="submit">Send Message</button></div>
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Contact Section -->
+{% endblock %}

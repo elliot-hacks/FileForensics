@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section id="about" class="about">
+    <h2>Detected Language:</h2>
+    <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
+        <p>{{ language }}</p>
+    </div>
+</section>
+{% endblock %}

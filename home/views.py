@@ -53,22 +53,33 @@ def analyse(request):
 
 
 def upload_file(request):
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            uploaded_file = form.save()
-            file_path = uploaded_file.file.path
-            
-            # Determine file type using magic numbers
-            mime = magic.Magic(mime=True)
-            file_type = mime.from_file(file_path)
-            
-            # Determine language based on file type
-            language = determine_language(file_type)
-            return render(request, 'analyse.html', {'language': language})
-    else:
-        form = UploadFileForm()
-    return render(request, 'malware.html', {'form': form})
+    if request.method == 'POST' and request.FILES['file']:
+        uploaded_file = request.FILES['file']
+        file_type = magic.from_buffer(uploaded_file.read(1024), mime=True)
+        return render(request, 'analyse.html', {'file_type': file_type})
+    return render(request, 'malware.html')
+
+
+
+# def upload_file(request):
+#     if request.method == 'POST':
+#         form = UploadFileForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             uploaded_file = request.FILES['file']
+#             file_type = magic.from_buffer(uploaded_file.read(1024), mime=True)
+#             # uploaded_file = form.save()
+#             # file_path = uploaded_file.file.path
+#
+#             # # Determine file type using magic numbers
+#             # # mime = magic.Magic(mime=True)
+#             # file_type = magic.from_file(file_path)
+#
+#             # # Determine language based on file type
+#             language = determine_language(file_type)
+#             return render(request, 'analyse.html', {'language': language})
+#     else:
+#         form = UploadFileForm()
+#     return render(request, 'malware.html', {'form': form})
 
 
 # Determine lang...

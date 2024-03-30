@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -108,6 +109,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 YARA_RULE_FILE = 'static/YARA/index.yar'
+MEDIA_URL = '/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 AUTH_USER_MODEL = 'home.User'
 

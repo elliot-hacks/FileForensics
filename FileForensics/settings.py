@@ -108,7 +108,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-YARA_RULE_FILE = 'static/YARA/index.yar'
+# YARA_RULE_FILE = '/YARA/'
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 

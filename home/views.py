@@ -1,15 +1,17 @@
 import os
 import re
+import yara
 import magic
-import zipfile
 import urllib
+import zipfile
+from pathlib import Path
 from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
-from django.contrib.auth.forms import AuthenticationForm
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from .models import Malware
 from .forms import UserRegistrationForm
 
@@ -50,44 +52,12 @@ def u_login(request):
         form = AuthenticationForm()
     return render(request=request, template_name="registration/login.html", context={"login_form": form})
 
+def analyse(request, language_name, signatures):
+    return render(request, 'analyse.html', {'language_name': language_name, 'signatures': signatures})
 
-def analyse(request, language_name):
-    return render(request, 'analyse.html', {'language_name': language_name})
-
-
-def upload_file(request):
-    if request.method == 'POST' and request.FILES['file']:
-        file = request.FILES['file']
-        file_type = magic.from_buffer(file.read(1024), mime=True)
-        # Clean special characters from file_type using regex
-        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)
-        # Look up language name from language_map dictionary
-        language_name = language_map.get(cleaned_file_type, 'Unknown')
-        # Print the file name to the console for debugging
-        if language_name == 'Unknown':
-            print("Unknown file type for file:", file.name)
-        
-        return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name)}))
-    return render(request, 'malware.html')
-
-
-def submit_report(request):
-    if request.method == 'POST':
-        signatures = request.POST.get('signatures')
-        language = request.POST.get('language')
-        uploaded_file = request.FILES.get('file')
-
-        # Process the submitted data
-        # For example, you can create a new Malware instance and save it to the database
-        malware = Malware(signatures=signatures, language=language, file=uploaded_file)
-        malware.save()
-
-        return redirect('success_page')  # Redirect to a success page
-
-    return render(request, 'submit_report.html')
 
 language_map = {
-    'textplain': 'Palin-text',
+    'textplain': 'Plain-text',
     # Progamiing languages
     'textx-script.python': 'Python-Script',
     'textx-c': 'C-Script',
@@ -113,6 +83,64 @@ language_map = {
     'imagejpeg': 'JPG-Image',
     'imagegif': 'GIF-Image',
     'videomp4': 'MP4-File',
+    'applicationpdf': 'PDF-File',
+    'applicationzip': 'ZIP-Compression',
     'applicationx-xz': 'XZ-Compression',
-    'applicationgzip': 'GZIP-Compression'
+    'applicationgzip': 'GZIP-Compression',
+    # Other extensions to research
+    # pcap,pcapng,other zip-compressions,  
 }
+
+
+def upload_file(request):
+    if request.method == 'POST' and request.FILES['file']:
+        file = request.FILES['file']
+        file_type = magic.from_buffer(file.read(1024), mime=True)
+        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type) # Clean special characters from file_type using regex
+        language_name = language_map.get(cleaned_file_type, 'Unknown') # Look up language name from language_map dictionary
+        # Print the file name to the console for debugging
+        if language_name == 'Unknown':
+            print("Unknown file type for file:", file.name)
+        
+        # YARA Scanning
+        yara_file = 'home/YARA/index.yar'
+        signatures = run_yara(file, yara_file)
+        
+
+        return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': ','.join(signatures)}))
+
+        # return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
+    return render(request, 'malware.html')
+
+
+def run_yara(file, yara_file):
+    try:
+        # Load YARA rules from the specified YARA file
+        compiled_rules = yara.compile(filepath=yara_file)
+
+        # Scan the sample with the loaded rules
+        matches = compiled_rules.match(data=file.read())
+
+        # Extract matching rule names or other relevant information from 'matches'
+        signatures = [match.rule for match in matches]
+
+        return signatures
+    except yara.Error as e:
+        print(f"YARA error: {e}")
+        return []
+
+
+def submit_report(request):
+    if request.method == 'POST':
+        signatures = request.POST.get('signatures')
+        language = request.POST.get('language')
+        uploaded_file = request.FILES.get('file')
+
+        # Process the submitted data
+        # For example, you can create a new Malware instance and save it to the database
+        malware = Malware(signatures=signatures, language=language, file=uploaded_file)
+        malware.save()
+
+        return redirect('success_page')  # Redirect to a success page
+
+    return render(request, 'submit_report.html')

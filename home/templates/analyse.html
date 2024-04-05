@@ -2,9 +2,44 @@
 {% load static %}
 {% block content %}
 <section id="about" class="about">
-    <h2>Detected Language:</h2>
+    <h2>Submit Report</h2>
     <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
-        <p>{{ language_name }}</p>
+        <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="name" class="form-label">name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="File Name">
+            </div>
+            <div class="mb-3">
+                <label for="version" class="form-label">version</label>
+                <input type="text" class="form-control" id="version" name="version" placeholder="File version">
+            </div>
+            <div class="mb-3">
+                <label for="author" class="form-label">author</label>
+                <input type="text" class="form-control" id="author" name="author" placeholder="File author">
+            </div>
+            <div class="mb-3">
+                <label for="language" class="form-label">Language</label>
+                <input type="text" class="form-control" id="language" name="language" placeholder="{{ language_name }}">
+            </div>
+            <div class="mb-3">
+                <label for="architecture" class="form-label">Architecture</label>
+                <input type="text" class="form-control" id="architecture" name="architecture" placeholder="File architecture">
+            </div>
+            <div class="mb-3">
+                <label for="platform" class="form-label">Platform</label>
+                <input type="text" class="form-control" id="platform" name="platform" placeholder="File platform">
+            </div>
+            <div class="mb-3">
+                <label for="comments" class="form-label">Comments</label>
+                <textarea class="form-control" id="comments" name="comments" placeholder="Enter detected signatures" rows="5"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="tags" class="form-label">Tags</label>
+                <input type="text" class="form-control" id="tags" name="tags" placeholder="malware">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
     </div>
 </section>
 {% endblock %}

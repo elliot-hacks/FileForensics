@@ -10,7 +10,8 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate
-from .forms import UploadFileForm,UserRegistrationForm
+from .models import Malware
+from .forms import UserRegistrationForm
 
 
 def index(request):
@@ -70,12 +71,21 @@ def upload_file(request):
     return render(request, 'malware.html')
 
 
+def submit_report(request):
+    if request.method == 'POST':
+        signatures = request.POST.get('signatures')
+        language = request.POST.get('language')
+        uploaded_file = request.FILES.get('file')
 
-# import re
-# import urllib.parse
-# import magic
+        # Process the submitted data
+        # For example, you can create a new Malware instance and save it to the database
+        malware = Malware(signatures=signatures, language=language, file=uploaded_file)
+        malware.save()
 
-# # Define a dictionary to map MIME types to language names
+        return redirect('success_page')  # Redirect to a success page
+
+    return render(request, 'submit_report.html')
+
 language_map = {
     'textplain': 'Palin-text',
     # Progamiing languages

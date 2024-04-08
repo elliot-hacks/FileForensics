@@ -4,6 +4,7 @@ import yara
 import magic
 import urllib
 import zipfile
+from PIL import Image
 from pathlib import Path
 from django.urls import reverse
 from django.conf import settings
@@ -13,7 +14,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Malware
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, ImageUploadForm
 
 
 def index(request):
@@ -52,6 +53,57 @@ def u_login(request):
         form = AuthenticationForm()
     return render(request=request, template_name="registration/login.html", context={"login_form": form})
 
+
+# Image manipulation
+def get_plane(img, channel, index=0):
+    if channel in img.mode:
+        new_image = Image.new('L', img.size)  # Changed mode to 'L' for grayscale images
+        new_image_data = new_image.load()
+
+        channel_index = img.mode.index(channel)
+
+        for x in range(img.size[0]):
+            for y in range(img.size[1]):
+                color = img.getpixel((x, y))  # Changed data[x, y] to img.getpixel((x, y))
+
+                channel_value = color[channel_index]
+                plane = bin(channel_value)[2:].zfill(8)
+
+                try:
+                    new_image_data[x, y] = 255 * int(plane[abs(index-7)])
+                except IndexError:
+                    pass
+        return new_image
+
+def image_steg(request):
+    if request.method == 'POST':
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            image_file = request.FILES['image']
+            colors=['R', 'G', 'B']
+            try:
+                img = Image.open(image_file)
+                img_format = img.format
+                if img_format in ['JPEG', 'PNG']:
+                    images = []
+                    for channel in colors:
+                        for plane in range(8):
+                            new_image = get_plane(img, channel, plane)
+                            images.append(new_image)
+                    return render(request, 'image_viewer/display_alpha_planes.html', {'images': images, 'colors':colors})
+                else:
+                    error_msg = "Unsupported image format. Please upload a JPEG or PNG image."
+            except IOError:
+                error_msg = "Invalid image file."
+        else:
+            error_msg = "Please upload an image file."
+        return render(request, 'image_viewer/upload_image.html', {'form': form, 'error_msg': error_msg})
+    else:
+        form = ImageUploadForm()
+        return render(request, 'image_viewer/upload_image.html', {'form': form})
+
+
+# Malware Files
 def analyse(request, language_name, signatures):
     return render(request, 'analyse.html', {'language_name': language_name, 'signatures': signatures})
 
@@ -107,9 +159,9 @@ def upload_file(request):
         signatures = run_yara(file, yara_file)
         
 
-        return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': ','.join(signatures)}))
+        # return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': ','.join(signatures)}))
 
-        # return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
+        return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
     return render(request, 'malware.html')
 
 

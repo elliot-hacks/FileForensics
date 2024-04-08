@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section id="about" class="about">
+    <h1>Alpha Planes</h1>
+    <div class="container">
+        {% for channel in colors %}
+            {% for image in images %}
+                {% if image.mode == 'L' %}
+                        <div class="image">
+                            <img src="{{ image.url }}" alt="{{ channel }}_{{ forloop.counter }}">
+                            <p>{{ channel }}_{{ forloop.counter }}</p>
+                        </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+

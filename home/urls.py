@@ -7,5 +7,6 @@ urlpatterns = [
     path('login', views.u_login, name="login"),
     # path('malware', views.malware, name="malware"),
     path('analyse/<str:language_name>/<str:signatures>/', views.analyse, name='analyse'),  # Define the URL pattern for analyzing files
+    path('image_steg', views.image_steg, name='image_steg'),
     path('upload', views.upload_file, name='upload_file'),
 ]

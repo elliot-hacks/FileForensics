@@ -4,6 +4,11 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import User, Malware,UploadedFile
 
 
+class ImageUploadForm(forms.Form):
+    image = forms.ImageField()
+
+
+
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
 

@@ -4,7 +4,9 @@ import yara
 import magic
 import urllib
 import zipfile
+from base64 import *
 from PIL import Image
+from io import BytesIO
 from pathlib import Path
 from django.urls import reverse
 from django.conf import settings
@@ -55,42 +57,51 @@ def u_login(request):
 
 
 # Image manipulation
-def get_plane(img, channel, index=0):
+def get_plane_image(img, channel, index=0):
     if channel in img.mode:
-        new_image = Image.new('L', img.size)  # Changed mode to 'L' for grayscale images
-        new_image_data = new_image.load()
-
         channel_index = img.mode.index(channel)
+        new_image = img.copy()
 
-        for x in range(img.size[0]):
-            for y in range(img.size[1]):
-                color = img.getpixel((x, y))  # Changed data[x, y] to img.getpixel((x, y))
-
+        for x in range(new_image.size[0]):
+            for y in range(new_image.size[1]):
+                color = new_image.getpixel((x, y))
                 channel_value = color[channel_index]
                 plane = bin(channel_value)[2:].zfill(8)
 
                 try:
-                    new_image_data[x, y] = 255 * int(plane[abs(index-7)])
+                    new_color = list(color)
+                    new_color[channel_index] = 255 * int(plane[abs(index-7)])
+                    new_image.putpixel((x, y), tuple(new_color))
                 except IndexError:
                     pass
-        return new_image
+
+        image_stream = BytesIO()
+        new_image.save(image_stream, format='PNG')
+        image_stream.seek(0)
+        
+        return image_stream.getvalue()
 
 def image_steg(request):
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
             image_file = request.FILES['image']
-            colors=['R', 'G', 'B']
+            colors = ['R', 'G', 'B']
+            images = []
+
             try:
                 img = Image.open(image_file)
-                img_format = img.format
-                if img_format in ['JPEG', 'PNG']:
-                    images = []
+                if img.format in ['JPEG', 'PNG']:
                     for channel in colors:
                         for plane in range(8):
-                            new_image = get_plane(img, channel, plane)
-                            images.append(new_image)
-                    return render(request, 'image_viewer/display_alpha_planes.html', {'images': images, 'colors':colors})
+                            image_data = get_plane_image(img, channel, plane)
+                            image_base64 = b64encode(image_data).decode('utf-8')
+                            images.append(f"data:image/png;base64,{image_base64}")
+
+                    return render(request, 
+                                  'image_viewer/display_alpha_planes.html',
+                                  {'images': images, 
+                                   'colors': colors})
                 else:
                     error_msg = "Unsupported image format. Please upload a JPEG or PNG image."
             except IOError:

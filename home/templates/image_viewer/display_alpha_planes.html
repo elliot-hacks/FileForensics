@@ -1,20 +1,42 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<style>
+    .image-column img {
+        width: 150px; /* Adjust the width as per your requirement */
+        height: auto;
+    }
+</style>
 <section id="about" class="about">
     <h1>Alpha Planes</h1>
     <div class="container">
-        {% for channel in colors %}
-            {% for image in images %}
-                {% if image.mode == 'L' %}
-                        <div class="image">
-                            <img src="{{ image.url }}" alt="{{ channel }}_{{ forloop.counter }}">
-                            <p>{{ channel }}_{{ forloop.counter }}</p>
-                        </div>
-                {% endif %}
+        <div class="image-column">
+            <h2>R Channel</h2>
+            {% for image in images|slice:"0:8" %}
+                <div class="image">
+                    <img src="{{ image }}" alt="R_{{ forloop.counter0 }}">
+                    <p>R_{{ forloop.counter0 }}</p>
+                </div>
             {% endfor %}
-        {% endfor %}
+        </div>
+        <div class="image-column">
+            <h2>G Channel</h2>
+            {% for image in images|slice:"8:16" %}
+                <div class="image">
+                    <img src="{{ image }}" alt="G_{{ forloop.counter0 }}">
+                    <p>G_{{ forloop.counter0 }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="image-column">
+            <h2>B Channel</h2>
+            {% for image in images|slice:"16:24" %}
+                <div class="image">
+                    <img src="{{ image }}" alt="B_{{ forloop.counter0 }}">
+                    <p>B_{{ forloop.counter0 }}</p>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </section>
 {% endblock %}
-

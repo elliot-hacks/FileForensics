@@ -2,40 +2,55 @@
 {% load static %}
 {% block content %}
 <style>
-    .image-column img {
-        width: 150px; /* Adjust the width as per your requirement */
+    .channel-row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .channel-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .channel-column img {
+        width: 300px; /* Adjust the width as per your requirement */
         height: auto;
+        margin-bottom: 10px;
     }
 </style>
 <section id="about" class="about">
     <h1>Alpha Planes</h1>
     <div class="container">
-        <div class="image-column">
-            <h2>R Channel</h2>
-            {% for image in images|slice:"0:8" %}
-                <div class="image">
-                    <img src="{{ image }}" alt="R_{{ forloop.counter0 }}">
-                    <p>R_{{ forloop.counter0 }}</p>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="image-column">
-            <h2>G Channel</h2>
-            {% for image in images|slice:"8:16" %}
-                <div class="image">
-                    <img src="{{ image }}" alt="G_{{ forloop.counter0 }}">
-                    <p>G_{{ forloop.counter0 }}</p>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="image-column">
-            <h2>B Channel</h2>
-            {% for image in images|slice:"16:24" %}
-                <div class="image">
-                    <img src="{{ image }}" alt="B_{{ forloop.counter0 }}">
-                    <p>B_{{ forloop.counter0 }}</p>
-                </div>
-            {% endfor %}
+        <div class="channel-row">
+            <div class="channel-column">
+                <h2>R Channel</h2>
+                {% for image in images|slice:"0:8" %}
+                    <div class="image">
+                        <img src="{{ image }}" alt="R_{{ forloop.counter0 }}" width: 50px;>
+                        <p>R_{{ forloop.counter0 }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="channel-column">
+                <h2>G Channel</h2>
+                {% for image in images|slice:"8:16" %}
+                    <div class="image">
+                        <img src="{{ image }}" alt="G_{{ forloop.counter0 }}">
+                        <p>G_{{ forloop.counter0 }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="channel-column">
+                <h2>B Channel</h2>
+                {% for image in images|slice:"16:24" %}
+                    <div class="image">
+                        <img src="{{ image }}" alt="B_{{ forloop.counter0 }}">
+                        <p>B_{{ forloop.counter0 }}</p>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </section>

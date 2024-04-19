@@ -20,7 +20,29 @@
 
 <!-- Your existing HTML content -->
 <h1>IDS</h1>
+<h3>Devices found:</h3>
+<ul id="devices-list">
+</ul>
 <!-- ... -->
+<script>
+    function updateDevicesList(devices) {
+    const devicesList = document.getElementById('devices-list');
+    devicesList.innerHTML = '';
 
+    devices.forEach(device => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${device.hostname} (${device.ip}) - ${device.mac}`;
+        devicesList.appendChild(listItem);
+    });
+}
+
+// ...
+
+// In the capturePackets function, add the following line after the 'IDS activated' message:
+// send the devices list to the home.html template
+socket.send(JSON.stringify({ 'type': 'update_devices_list', 'devices': devices }));
+// Listener to display the modal when the user clicks the button
+document.getElementById('openRootPasswordModal').addEventListener('click', displayModal);
+</script>
 </section>
 {% endblock %}

@@ -47,6 +47,24 @@ function sendRootPassword() {
     });
 }
 
+// In ids.js
+
+function updateDevicesList(devices) {
+    const devicesList = document.getElementById('devices-list');
+    devicesList.innerHTML = '';
+
+    devices.forEach(device => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${device.hostname} (${device.ip}) - ${device.mac}`;
+        devicesList.appendChild(listItem);
+    });
+}
+
+// Add this to your existing WebSocket listener
+if (event.data.type === 'update_devices_list') {
+    updateDevicesList(event.data.devices);
+}
+
 // Event listeners
 btn.addEventListener('click', sendRootPassword);
 span.addEventListener('click', closeModal);

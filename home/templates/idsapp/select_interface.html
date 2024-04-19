@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section id="about" class="about"></section>
+    <h1>Select Network Interface</h1>
+    <form action="{% url 'network_capture' %}" method="post">
+        {% csrf_token %}
+        <select name="interface">
+            {% for interface in interfaces %}
+                <option value="{{ interface }}">{{ interface }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="network_capture">
+    </form>
+</section>
+{% endblock %}

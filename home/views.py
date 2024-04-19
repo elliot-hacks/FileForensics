@@ -3,6 +3,7 @@ import re
 import yara
 import json
 import magic
+import socket
 import urllib
 import zipfile
 import subprocess
@@ -10,7 +11,8 @@ from base64 import *
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
-from scapy.all import sniff
+from scapy.layers.l2 import ARP
+from scapy.all import sniff, get_if_list
 from threading import Thread
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -25,7 +27,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from .models import Malware, Packet
 from .forms import UserRegistrationForm, ImageUploadForm
-
+    
 
 def index(request):
     return render(request, 'index.html')
@@ -65,22 +67,24 @@ def u_login(request):
 
 
 # Network Capture
-def capture_packets(interface):
-    def process_packet(packet):
-        if packet.haslayer('IP'):
-            source_ip = packet['IP'].src
-            destination_ip = packet['IP'].dst
-            protocol = packet['IP'].proto
-            payload = str(packet['IP'].payload)
-            
-            Packet.objects.create(
-                source_ip=source_ip,
-                destination_ip=destination_ip,
-                protocol=protocol,
-                payload=payload
-            )
-    
-    sniff(iface=interface, prn=process_packet)
+def select_interface(request):
+    interfaces = get_if_list()
+    return render(request, 'idsapp/select_interface.html', {'interfaces': interfaces})
+
+
+def capture_packets(request):
+    if request.method == 'POST':
+        interface = request.POST.get('interface')
+        
+        def process_packet(packet):
+            # Process and store the packet as needed
+            pass
+        
+        # Start capturing packets in a separate thread
+        t = Thread(target=sniff, kwargs={'iface': interface, 'prn': process_packet})
+        t.start()
+        
+        return HttpResponse('Capturing packets on {}'.format(interface))
 
 
 def network_capture(request):
@@ -92,6 +96,26 @@ def network_capture(request):
         return render(request, 'idsapp/home.html', {'message': 'IDS activated'})
     
     return render(request, 'idsapp/home.html')
+
+
+def process_packet(packet):
+    if ARP in packet:
+        sender_ip = packet[ARP].psrc
+        sender_mac = packet[ARP].hwsrc.upper()
+        
+        try:
+            sender_host = socket.gethostbyaddr(sender_ip)[0]
+        except socket.herror:
+            sender_host = 'Unknown'
+
+        # Save the packet to the database
+        Packet.objects.create(
+            source_ip=sender_ip,
+            protocol='ARP',
+            payload=str(packet),
+        )
+        
+        print(f"Device found: {sender_host} ({sender_ip}) - {sender_mac}")
 
 
 channel_layer = get_channel_layer()
@@ -122,6 +146,9 @@ async def send_notification(self, event):
     message = event['message']
     await self.send(text_data=json.dumps({'message': message}))
 
+async def update_devices_list(self, message):
+    devices = message['devices']
+    await self.send(text_data=json.dumps({'type': 'update_devices_list', 'devices': devices}))
 
 @login_required
 def validate_root_password(request):

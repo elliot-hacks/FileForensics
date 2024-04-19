@@ -1,21 +1,29 @@
 import os
 import re
 import yara
+import json
 import magic
 import urllib
 import zipfile
+import subprocess
 from base64 import *
 from PIL import Image
 from io import BytesIO
 from pathlib import Path
+from scapy.all import sniff
+from threading import Thread
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.urls import reverse
 from django.conf import settings
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Malware
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
+from .models import Malware, Packet
 from .forms import UserRegistrationForm, ImageUploadForm
 
 
@@ -54,6 +62,83 @@ def u_login(request):
     else:
         form = AuthenticationForm()
     return render(request=request, template_name="registration/login.html", context={"login_form": form})
+
+
+# Network Capture
+def capture_packets(interface):
+    def process_packet(packet):
+        if packet.haslayer('IP'):
+            source_ip = packet['IP'].src
+            destination_ip = packet['IP'].dst
+            protocol = packet['IP'].proto
+            payload = str(packet['IP'].payload)
+            
+            Packet.objects.create(
+                source_ip=source_ip,
+                destination_ip=destination_ip,
+                protocol=protocol,
+                payload=payload
+            )
+    
+    sniff(iface=interface, prn=process_packet)
+
+
+def network_capture(request):
+    if request.method == 'POST':
+        interface = request.POST.get('interface')
+        # Start packet capturing in a separate thread
+        t = Thread(target=capture_packets, args=(interface,))
+        t.start()
+        return render(request, 'idsapp/home.html', {'message': 'IDS activated'})
+    
+    return render(request, 'idsapp/home.html')
+
+
+channel_layer = get_channel_layer()
+
+def send_notification(message):
+    async_to_sync(channel_layer.group_send)(
+        'notifications_group',
+        {
+            'type': 'send_notification',
+            'message': message
+        }
+    )
+
+async def connect(self):
+    await self.channel_layer.group_add(
+        'notifications_group',
+        self.channel_name
+    )
+    await self.accept()
+
+async def disconnect(self, close_code):
+    await self.channel_layer.group_discard(
+        'notifications_group',
+        self.channel_name
+    )
+
+async def send_notification(self, event):
+    message = event['message']
+    await self.send(text_data=json.dumps({'message': message}))
+
+
+@login_required
+def validate_root_password(request):
+    if request.method == 'POST':
+        root_password = request.POST.get('password')
+        
+        try:
+            # Use 'sudo' to check if the password is correct
+            subprocess.run(['sudo', '-k', '-S', 'whoami'], input=root_password.encode(), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # If the command succeeds, perform the root operation
+            # Perform your root operation here...
+            
+            return JsonResponse({'valid': True})
+        
+        except subprocess.CalledProcessError:
+            return JsonResponse({'valid': False})
 
 
 # Image manipulation

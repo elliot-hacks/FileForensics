@@ -43,3 +43,16 @@ class Signature(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# For networkCapture
+class Packet(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    source_ip = models.CharField(max_length=50)
+    destination_ip = models.CharField(max_length=50)
+    protocol = models.CharField(max_length=10)
+    payload = models.TextField()
+
+class Event(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()

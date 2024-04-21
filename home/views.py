@@ -25,7 +25,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
-from .models import Malware, Packet
+from .models import Malware, Packet,UploadedFile
 from .forms import UserRegistrationForm, ImageUploadForm
     
 
@@ -256,10 +256,6 @@ def image_steg(request):
 
 
 # Malware Files
-def analyse(request, language_name, signatures):
-    return render(request, 'analyse.html', {'language_name': language_name, 'signatures': signatures})
-
-
 language_map = {
     'textplain': 'Plain-text',
     # Progamiing languages
@@ -299,67 +295,70 @@ language_map = {
 def upload_file(request):
     if request.method == 'POST' and request.FILES['file']:
         file = request.FILES['file']
+        
+        # Save the uploaded file to the database
+        uploaded_file = UploadedFile(file=file)
+        uploaded_file.save()
+        
+        # Extract uploaded file name
+        uploaded_file_name = uploaded_file.file.name
+        
+        # Detect file type and language
         file_type = magic.from_buffer(file.read(1024), mime=True)
-        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type) # Clean special characters from file_type using regex
-        language_name = language_map.get(cleaned_file_type, 'Unknown') # Look up language name from language_map dictionary
-        # Print the file name to the console for debugging
+        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)
+        language_name = language_map.get(cleaned_file_type, 'Unknown')
+        
         if language_name == 'Unknown':
             print("Unknown file type for file:", file.name)
         
         # YARA Scanning
         yara_file = 'home/YARA/index.yar'
-        signatures = run_yara(file, yara_file)
-        
+        try:
+            compiled_rules = yara.compile(filepath=yara_file)
+            matches = compiled_rules.match(data=file.read())
+            signatures = ','.join([match.rule for match in matches])
+        except yara.Error as e:
+            print(f"YARA error: {e}")
+            signatures = ''
 
-        # return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': ','.join(signatures)}))
+        # Redirect to submit_report view with correct kwargs
+        return redirect(reverse('submit_report', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
 
-        return redirect(reverse('analyse', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
     return render(request, 'malware.html')
 
 
-def run_yara(file, yara_file):
-    try:
-        # Load YARA rules from the specified YARA file
-        compiled_rules = yara.compile(filepath=yara_file)
+def submit_report(request, language_name=None, signatures=None):
+    uploaded_file_name = request.GET.get('uploaded_file_name')
 
-        # Scan the sample with the loaded rules
-        matches = compiled_rules.match(data=file.read())
-
-        # Extract matching rule names or other relevant information from 'matches'
-        signatures = [match.rule for match in matches]
-
-        return signatures
-    except yara.Error as e:
-        print(f"YARA error: {e}")
-        return []
-
-
-def submit_report(request):
     if request.method == 'POST':
+        # Extract other form data
         name = request.POST.get('name')
         version = request.POST.get('version')
         author = request.POST.get('author')
-        language = request.POST.get('language')
-        architecture = request.POST.get('architecture')
         platform = request.POST.get('platform')
-        comments = request.POST.get('comments')
         tags = request.POST.get('tags')
-        uploaded_file = request.FILES.get('file')
+        comments = request.POST.get('comments')
 
-        # Create a new Malware instance and save it to the database
+        # Get the UploadedFile object based on the uploaded_file_name
+        uploaded_file = UploadedFile.objects.get(file=uploaded_file_name)
+
+        # Create Malware instance
         malware = Malware(
             name=name,
             version=version,
             author=author,
-            language=language,
-            architecture=architecture,
+            language=language_name,
+            signatures=signatures,
             platform=platform,
-            comments=comments,
             tags=tags,
-            location=uploaded_file  # Assuming 'location' field is for storing the uploaded file
+            comments=comments,
+            location=uploaded_file  # Associate the Malware instance with the UploadedFile
         )
         malware.save()
 
-        return redirect('success_page')  # Redirect to a success page after saving
+        return redirect('success_page')  # Redirect to a success page
 
-    return render(request, 'submit_report.html')
+    return render(request, 'submit_report.html', {
+        'language': language_name,
+        'signatures': signatures,
+    })

@@ -3,18 +3,17 @@ from django.db import models
 
 # Create your models here.
 class User(AbstractUser):
-  email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True)
 
 
 class UploadedFile(models.Model):
-     file = models.FileField(upload_to='uploads/')
+    file = models.FileField(upload_to='uploads/')
 
-     def __str__(self) -> str:
-        return self.name
+    def __str__(self):
+        return self.file.name  # Return the file name as the string representation
 
 class Malware(models.Model):
-    # source = models.ForeignKey(Customer, on_delete=models.PROTECT)
-    location = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)  # A name or description of the sample
+    location = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     type = models.CharField(max_length=255, null=True, blank=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     version = models.CharField(max_length=255, null=True, blank=True)
@@ -27,12 +26,11 @@ class Malware(models.Model):
     comments = models.CharField(max_length=255, null=True, blank=True)
     tags = models.CharField(max_length=255, null=True, blank=True)
 
-
     class Meta:
         db_table = "Malwares"
 
-    def __str__(self) -> str:
-        return self.name
+    def __str__(self):
+        return self.name if self.name else str(self.id)  # Return the name if available, otherwise return ID
 
 
 class Signature(models.Model):

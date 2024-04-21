@@ -4,7 +4,7 @@
 <section id="about" class="about">
     <h2>Submit Report</h2>
     <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
-        <form method="post" action="" enctype="multipart/form-data">
+        <form method="post" action="{% url 'submit_report' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="name" class="form-label">name</label>

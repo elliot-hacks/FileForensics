@@ -336,15 +336,30 @@ def run_yara(file, yara_file):
 
 def submit_report(request):
     if request.method == 'POST':
-        signatures = request.POST.get('signatures')
+        name = request.POST.get('name')
+        version = request.POST.get('version')
+        author = request.POST.get('author')
         language = request.POST.get('language')
+        architecture = request.POST.get('architecture')
+        platform = request.POST.get('platform')
+        comments = request.POST.get('comments')
+        tags = request.POST.get('tags')
         uploaded_file = request.FILES.get('file')
 
-        # Process the submitted data
-        # For example, you can create a new Malware instance and save it to the database
-        malware = Malware(signatures=signatures, language=language, file=uploaded_file)
+        # Create a new Malware instance and save it to the database
+        malware = Malware(
+            name=name,
+            version=version,
+            author=author,
+            language=language,
+            architecture=architecture,
+            platform=platform,
+            comments=comments,
+            tags=tags,
+            location=uploaded_file  # Assuming 'location' field is for storing the uploaded file
+        )
         malware.save()
 
-        return redirect('success_page')  # Redirect to a success page
+        return redirect('success_page')  # Redirect to a success page after saving
 
     return render(request, 'submit_report.html')

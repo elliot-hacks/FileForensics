@@ -13,6 +13,7 @@ urlpatterns = [
     path('network_capture/', views.network_capture, name='network_capture'),
     path('select_interface', views.select_interface, name='select_interface'),
     path('upload', views.upload_file, name='upload_file'),
+    path('report', views.submit_report, name='submit_report'),
 ]
 
 

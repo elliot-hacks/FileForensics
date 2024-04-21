@@ -72,19 +72,48 @@ def select_interface(request):
     return render(request, 'idsapp/select_interface.html', {'interfaces': interfaces})
 
 
+from scapy.utils import wrpcap
+
 def capture_packets(request):
     if request.method == 'POST':
         interface = request.POST.get('interface')
-        
+        filename = f'{interface}_capture.pcap'
+
         def process_packet(packet):
-            # Process and store the packet as needed
-            pass
-        
+            if ARP in packet:
+                sender_ip = packet[ARP].psrc
+                sender_mac = packet[ARP].hwsrc.upper()
+                
+                try:
+                    sender_host = socket.gethostbyaddr(sender_ip)[0]
+                except socket.herror:
+                    sender_host = 'Unknown'
+                
+                # Store the device information in the Packet model
+                Packet.objects.create(
+                    timestamp=packet.time,
+                    source_ip=sender_ip,
+                    destination_ip=packet[ARP].pdst,
+                    protocol='ARP',
+                    payload=str(packet),
+                    hostname=sender_host
+                )
+
+                print(f"Device found: {sender_host} ({sender_ip}) - {sender_mac}")
+
         # Start capturing packets in a separate thread
-        t = Thread(target=sniff, kwargs={'iface': interface, 'prn': process_packet})
+        t = Thread(target=sniff, kwargs={'iface': interface, 'prn': process_packet, 'store': False})
         t.start()
+
+        # Keep the thread running until the request is completed
+        t.join()
+
+        # Save captured packets to a pcap file
+        # Replace [] with the list of captured packets if you want to save them
+        wrpcap(filename, [])
         
-        return HttpResponse('Capturing packets on {}'.format(interface))
+        return HttpResponse(f'Capturing packets on {interface} and saving to {filename}')
+
 
 
 def network_capture(request):

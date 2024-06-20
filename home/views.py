@@ -291,74 +291,70 @@ language_map = {
     # pcap,pcapng,other zip-compressions,  
 }
 
+def analyse(request, language_name, signatures):
+    return render(request, 'submit_report.html', {'language_name': language_name, 'signatures': signatures})
+
+
 
 def upload_file(request):
-    if request.method == 'POST' and request.FILES['file']:
+    if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
-        
-        # Save the uploaded file to the database
-        uploaded_file = UploadedFile(file=file)
-        uploaded_file.save()
-        
-        # Extract uploaded file name
-        uploaded_file_name = uploaded_file.file.name
-        
-        # Detect file type and language
+
+        # Detect the file type using magic
         file_type = magic.from_buffer(file.read(1024), mime=True)
-        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)
-        language_name = language_map.get(cleaned_file_type, 'Unknown')
-        
+        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)  # Clean special characters from file_type using regex
+        language_name = language_map.get(cleaned_file_type, 'Unknown')  # Look up language name from language_map dictionary
+
+        # Debugging print
         if language_name == 'Unknown':
             print("Unknown file type for file:", file.name)
-        
-        # YARA Scanning
-        yara_file = 'home/YARA/index.yar'
-        try:
-            compiled_rules = yara.compile(filepath=yara_file)
-            matches = compiled_rules.match(data=file.read())
-            signatures = ','.join([match.rule for match in matches])
-        except yara.Error as e:
-            print(f"YARA error: {e}")
-            signatures = ''
 
-        # Redirect to submit_report view with correct kwargs
-        return redirect(reverse('submit_report', kwargs={'language_name': urllib.parse.quote(language_name), 'signatures': signatures}))
+        # YARA Scanning
+        yara_file = os.path.join(settings.BASE_DIR, 'home/YARA/index.yar')
+        
+        # Rewind file buffer to start for YARA scanning
+        file.seek(0)
+        
+        signatures = run_yara(file, yara_file)
+
+        # Prepare URL-safe parameters
+        encoded_language_name = urllib.parse.quote(language_name, safe='').strip("%")
+        encoded_signatures = urllib.parse.quote(','.join(signatures), safe='').strip("%")
+
+        print(f"Redirecting to analyse with language_name: {language_name}, signatures: {signatures}")
+
+        # Redirect to appropriate URL based on whether signatures are present
+        if encoded_signatures:
+            return redirect(reverse('analyse', kwargs={'language_name': encoded_language_name, 'signatures': encoded_signatures}))
+        else:
+            return redirect(reverse('analyse_no_signatures', kwargs={'language_name': encoded_language_name}))
 
     return render(request, 'malware.html')
+    
+
+def run_yara(file, yara_file):
+    try:
+        compiled_rules = yara.compile(filepath=yara_file)
+        matches = compiled_rules.match(data=file.read())
+        signatures = [match.rule for match in matches]
+
+        return signatures
+    except yara.Error as e:
+        print(f"YARA error: {e}")
+        return []
 
 
-def submit_report(request, language_name=None, signatures=None):
-    uploaded_file_name = request.GET.get('uploaded_file_name')
-
+def submit_report(request):
     if request.method == 'POST':
-        # Extract other form data
-        name = request.POST.get('name')
-        version = request.POST.get('version')
-        author = request.POST.get('author')
-        platform = request.POST.get('platform')
-        tags = request.POST.get('tags')
-        comments = request.POST.get('comments')
+        signatures = request.POST.get('signatures')
+        language = request.POST.get('language')
+        uploaded_file = request.FILES.get('file')
 
-        # Get the UploadedFile object based on the uploaded_file_name
-        uploaded_file = UploadedFile.objects.get(file=uploaded_file_name)
-
-        # Create Malware instance
-        malware = Malware(
-            name=name,
-            version=version,
-            author=author,
-            language=language_name,
-            signatures=signatures,
-            platform=platform,
-            tags=tags,
-            comments=comments,
-            location=uploaded_file  # Associate the Malware instance with the UploadedFile
-        )
+        # Process the submitted data
+        # For example, you can create a new Malware instance and save it to the database
+        malware = Malware(signatures=signatures, language=language, file=uploaded_file)
         malware.save()
 
         return redirect('success_page')  # Redirect to a success page
 
-    return render(request, 'submit_report.html', {
-        'language': language_name,
-        'signatures': signatures,
-    })
+    return render(request, 'submit_report.html')

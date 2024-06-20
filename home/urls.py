@@ -6,8 +6,11 @@ urlpatterns = [
     path('', views.index, name="index"),
     path('register', views.u_register, name="register"),
     path('login', views.u_login, name="login"),
-    # path('malware', views.malware, name="malware"),
-     path('submit_report/<str:language_name>/<str:signatures>/', views.submit_report, name='submit_report'),
+    path('submit_report/<str:language_name>/<str:signatures>/', views.submit_report, name='submit_report'),
+    path('submit_report/<str:language_name>/', views.submit_report, name='submit_report_no_signatures'),
+    path('analyse/<str:language_name>/<str:signatures>/', views.analyse, name='analyse'),
+    path('analyse/<str:language_name>/', views.analyse, name='analyse_no_signatures'),
+    # other paths...
     path('validate_root_password/', views.validate_root_password, name='validate_root_password'),
     path('image_steg', views.image_steg, name='image_steg'),
     path('network_capture/', views.network_capture, name='network_capture'),

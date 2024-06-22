@@ -4,7 +4,7 @@ from .import models
 
 @admin.register(models.Malware)
 class MalwareSampleAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'location', 'type', 'version', 'author', 'language', 'date', 'architecture', 'platform', 'vip', 'comments', 'tags']
+    list_display = ['id', 'name', 'type', 'version', 'author', 'language', 'date', 'architecture', 'platform', 'vip', 'comments', 'tags']
     list_per_page = 20
 
 

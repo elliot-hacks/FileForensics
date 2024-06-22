@@ -30,7 +30,17 @@ class UserRegistrationForm(UserCreationForm):
         return user
 
 
+
 class UploadFileForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
         fields = ['file']
+
+    def save(self, commit=True, user=None):
+        uploaded_file = super(UploadFileForm, self).save(commit=False)
+        if user:
+            uploaded_file.uploaded_by = user
+        if commit:
+            uploaded_file.save()
+        return uploaded_file
+

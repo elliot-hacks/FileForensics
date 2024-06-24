@@ -30,11 +30,10 @@ class UserRegistrationForm(UserCreationForm):
         return user
 
 
-
 class UploadFileForm(forms.ModelForm):
     class Meta:
         model = UploadedFile
-        fields = ['file']
+        fields = ['file', 'uploaded_by']  # Add any other fields if needed
 
     def save(self, commit=True, user=None):
         uploaded_file = super(UploadFileForm, self).save(commit=False)
@@ -44,3 +43,8 @@ class UploadFileForm(forms.ModelForm):
             uploaded_file.save()
         return uploaded_file
 
+
+class MalwareForm(forms.ModelForm):
+    class Meta:
+        model = Malware
+        fields = ['name', 'version', 'author', 'language', 'architecture', 'platform', 'comments', 'tags']

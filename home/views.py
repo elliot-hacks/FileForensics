@@ -5,6 +5,7 @@ import json
 import magic
 import socket
 import urllib
+import logging
 import zipfile
 import subprocess
 from base64 import *
@@ -26,7 +27,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from .models import Malware, Packet,UploadedFile
-from .forms import UserRegistrationForm, ImageUploadForm
+from .forms import UserRegistrationForm, ImageUploadForm, UploadFileForm, MalwareForm
     
 
 def index(request):
@@ -256,6 +257,7 @@ def image_steg(request):
 
 
 # Malware Files
+logger = logging.getLogger(__name__)
 language_map = {
     'textplain': 'Plain-text',
     # Progamiing languages
@@ -295,52 +297,93 @@ def analyse(request, language_name, signatures):
     return render(request, 'submit_report.html', {'language_name': language_name, 'signatures': signatures})
 
 
+def detect_file_type(file):
+    mime = magic.Magic(mime=True)
+    file_type = mime.from_buffer(file.read(1024))
+    file.seek(0)  # Reset the file pointer after reading
+    return file_type
 
+
+
+@login_required
 def upload_file(request):
     if request.method == 'POST' and request.FILES.get('file'):
         file = request.FILES['file']
 
-        # Detect the file type using magic
-        file_type = magic.from_buffer(file.read(1024), mime=True)
-        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)  # Clean special characters from file_type using regex
-        language_name = language_map.get(cleaned_file_type, 'Unknown')  # Look up language name from language_map dictionary
+        # Detect the file type
+        file_type = detect_file_type(file)
+        cleaned_file_type = re.sub(r'[^\w.-]', '', file_type)
+        language_name = language_map.get(cleaned_file_type, 'Unknown')
 
-        # Debugging print
         if language_name == 'Unknown':
-            print("Unknown file type for file:", file.name)
+            logger.warning(f"Unknown file type for file: {file.name}")
+
+        # Reset file pointer to the beginning
+        file.seek(0)
 
         # YARA Scanning
         yara_file = os.path.join(settings.BASE_DIR, 'home/YARA/index.yar')
-        
-        # Rewind file buffer to start for YARA scanning
-        file.seek(0)
-        
         signatures = run_yara(file, yara_file)
 
-        # Prepare URL-safe parameters
-        encoded_language_name = urllib.parse.quote(language_name, safe='').strip("%")
-        encoded_signatures = urllib.parse.quote(','.join(signatures), safe='').strip("%")
+        # Save the uploaded file information
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = form.save(commit=False)
+            uploaded_file.uploaded_by = request.user
+            uploaded_file.save()
 
-        print(f"Redirecting to analyse with language_name: {language_name}, signatures: {signatures}")
+            # Save the analysis results in the Malware model
+            malware = Malware(
+                uploaded_file=uploaded_file,
+                type=language_name,
+                name=os.path.basename(file.name),
+                language=language_name,
+                comments=', '.join(signatures)
+            )
+            malware.save()
 
-        # Redirect to appropriate URL based on whether signatures are present
-        if encoded_signatures:
-            return redirect(reverse('analyse', kwargs={'language_name': encoded_language_name, 'signatures': encoded_signatures}))
+            # Prepare data for redirection
+            encoded_language_name = urllib.parse.quote(language_name, safe='').strip("%")
+            encoded_signatures = urllib.parse.quote(','.join(signatures), safe='').strip("%")
+
+            logger.info(f"Redirecting to analyse with language_name: {language_name}, signatures: {signatures}")
+
+            # Redirect to the analysis report page
+            if encoded_signatures:
+                return redirect(reverse('analyse', kwargs={'language_name': encoded_language_name, 'signatures': encoded_signatures}))
+            else:
+                return redirect(reverse('analyse_no_signatures', kwargs={'language_name': encoded_language_name}))
         else:
-            return redirect(reverse('analyse_no_signatures', kwargs={'language_name': encoded_language_name}))
+            logger.error("UploadFileForm is not valid")
+            messages.error(request, form.errors)  # Display form errors
 
-    return render(request, 'malware.html')
+    else:
+        form = UploadFileForm()
+
+    return render(request, 'malware.html', {'form': form})
+
     
+def detect_file_type(file):
+    mime = magic.Magic(mime=True)
+    file_type = mime.from_buffer(file.read(1024))
+    file.seek(0)  # Reset the file pointer after reading
+    return file_type
 
 def run_yara(file, yara_file):
     try:
+        logger.debug("Compiling YARA rules from %s", yara_file)
         compiled_rules = yara.compile(filepath=yara_file)
-        matches = compiled_rules.match(data=file.read())
-        signatures = [match.rule for match in matches]
 
+        logger.debug("Running YARA match")
+        file.seek(0)
+        matches = compiled_rules.match(data=file.read())
+
+        signatures = [match.rule for match in matches]
+        logger.debug("YARA matches found: %s", signatures)
         return signatures
+
     except yara.Error as e:
-        print(f"YARA error: {e}")
+        logger.error("YARA error: %s", e)
         return []
 
 

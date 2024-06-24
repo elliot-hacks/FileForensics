@@ -10,7 +10,9 @@ class MalwareSampleAdmin(admin.ModelAdmin):
 
 @admin.register(models.UploadedFile)
 class UploadedFileSampleAdmin(admin.ModelAdmin):
-    list_display = ['file']
+    list_display = ['file', 'uploaded_at', 'uploaded_by', 'analyzed']
+    list_select_related = ['uploaded_by']
+    # autocomplete_fields = ['uploaded_by']
     list_per_page = 20
 
 # @admin.register(models.Professionnals)

@@ -13,14 +13,19 @@ from PIL import Image
 from io import BytesIO
 from pathlib import Path
 from scapy.layers.l2 import ARP
+from django.http import JsonResponse
 from scapy.all import sniff, get_if_list
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from threading import Thread
+import plotly.express as px
+from plotly.offline import plot
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.urls import reverse
 from django.conf import settings
+from django.shortcuts import render
+from django.db.models import Count
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -458,3 +463,75 @@ def generate_pdf_report(file, report_data):
 
     return file_path
 
+# Statistics
+# views.py
+
+import matplotlib.pyplot as plt
+import io
+import base64
+from django.shortcuts import render
+from django.db.models import Count
+from .models import UploadedFile
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def file_statistics(request):
+    # Aggregate file counts by type
+    file_types = UploadedFile.objects.values('uploaded_by').annotate(total=Count('id')).order_by('-total')
+
+    # Aggregate daily upload counts
+    daily_uploads = UploadedFile.objects.extra(select={'date': 'date(uploaded_at)'}).values('date').annotate(total=Count('id')).order_by('date')
+
+    # Convert QuerySets to lists
+    file_types_list = list(file_types)
+    daily_uploads_list = list(daily_uploads)
+
+    # Generate charts
+    pie_chart = generate_pie_chart(file_types_list)
+    bar_chart = generate_bar_chart(daily_uploads_list)
+
+    return render(request, 'file_statistics.html', {
+        'pie_chart': pie_chart,
+        'bar_chart': bar_chart
+    })
+
+
+def generate_pie_chart(file_types):
+    labels = [ft['uploaded_by'] for ft in file_types]
+    sizes = [ft['total'] for ft in file_types]
+
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140)
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+    return convert_plot_to_base64(fig)
+
+
+def generate_bar_chart(daily_uploads):
+    dates = [du['date'] for du in daily_uploads]
+    counts = [du['total'] for du in daily_uploads]
+
+    fig, ax = plt.subplots()
+    ax.bar(dates, counts, color='blue')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Number of Uploads')
+    ax.set_title('Daily Uploads')
+
+    return convert_plot_to_base64(fig)
+
+
+def convert_plot_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    image_png = buf.getvalue()
+    buf.close()
+
+    # Encode the PNG image to base64
+    graphic = base64.b64encode(image_png)
+    graphic = graphic.decode('utf-8')
+
+    # Close the figure to avoid memory leaks
+    plt.close(fig)
+
+    return graphic

@@ -1,0 +1,18 @@
+<!-- templates/file_statistics.html -->
+{% extends 'malbase.html' %}
+
+{% block content %}
+<section id="file-statistics" class="file-statistics">
+    <div class="container" data-aos="fade-up">
+        <h2>File Upload Statistics</h2>
+
+        <!-- Pie Chart -->
+        <h3>File Types Distribution</h3>
+        <img src="data:image/png;base64,{{ pie_chart }}" alt="Pie Chart">
+
+        <!-- Bar Chart -->
+        <h3>Daily Uploads</h3>
+        <img src="data:image/png;base64,{{ bar_chart }}" alt="Bar Chart">
+    </div>
+</section>
+{% endblock %}

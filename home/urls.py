@@ -7,6 +7,7 @@ urlpatterns = [
     path('register', views.u_register, name="register"),
     path('login', views.u_login, name="login"),
     path('files/', views.list_uploaded_files, name='list_uploaded_files'),
+    path('file_statistics', views.file_statistics, name='file_statistics'),
     path('files/<int:file_id>/edit/', views.edit_report, name='edit_report'),
     path('files/<int:file_id>/', views.view_report, name='view_report'),
     path('submit_report/<str:language_name>/<str:signatures>/', views.submit_report, name='submit_report'),

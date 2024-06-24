@@ -1,0 +1,23 @@
+<!-- templates/view_report.html -->
+{% extends 'base.html' %}
+{% block content %}
+<section id="view-report" class="view-report">
+  <div class="container" data-aos="fade-up">
+    <h2>Report for {{ uploaded_file.file.name }}</h2>
+    <p><strong>Uploaded By:</strong> {{ uploaded_file.uploaded_by.username }}</p>
+    <p><strong>Uploaded At:</strong> {{ uploaded_file.uploaded_at }}</p>
+    {% if malware %}
+    <p><strong>Name:</strong> {{ malware.name }}</p>
+    <p><strong>Version:</strong> {{ malware.version }}</p>
+    <p><strong>Author:</strong> {{ malware.author }}</p>
+    <p><strong>Language:</strong> {{ malware.language }}</p>
+    <p><strong>Architecture:</strong> {{ malware.architecture }}</p>
+    <p><strong>Platform:</strong> {{ malware.platform }}</p>
+    <p><strong>Comments:</strong> {{ malware.comments }}</p>
+    <p><strong>Tags:</strong> {{ malware.tags }}</p>
+    {% else %}
+    <p>No report available for this file.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

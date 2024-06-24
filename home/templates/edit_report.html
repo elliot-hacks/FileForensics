@@ -1,0 +1,14 @@
+<!-- templates/edit_report.html -->
+{% extends 'base.html' %}
+{% block content %}
+<section id="edit-report" class="edit-report">
+  <div class="container" data-aos="fade-up">
+    <h2>Edit Report for {{ uploaded_file.file.name }}</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

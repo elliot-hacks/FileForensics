@@ -1,0 +1,43 @@
+<!-- templates/list_uploaded_files.html -->
+{% extends 'base.html' %}
+{% block content %}
+<section id="uploaded-files" class="uploaded-files">
+  <div class="container" data-aos="fade-up">
+    <h2>Uploaded Files</h2>
+    <form method="get" action="">
+      <input type="text" name="q" placeholder="Search files..." value="{{ request.GET.q }}">
+      <select name="file_type">
+        <option value="">All Types</option>
+        <!-- Populate options dynamically -->
+        {% for key, value in language_map.items %}
+        <option value="{{ key }}">{{ value }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">File Name</th>
+          <th scope="col">Uploaded By</th>
+          <th scope="col">Uploaded At</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for file in files %}
+        <tr>
+          <td>{{ file.file.name }}</td>
+          <td>{{ file.uploaded_by.username }}</td>
+          <td>{{ file.uploaded_at }}</td>
+          <td>
+            <a href="{% url 'edit_report' file.id %}" class="btn btn-primary btn-sm">Edit Report</a>
+            <a href="{% url 'view_report' file.id %}" class="btn btn-secondary btn-sm">View Report</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

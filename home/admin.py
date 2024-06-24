@@ -4,7 +4,10 @@ from .import models
 
 @admin.register(models.Malware)
 class MalwareSampleAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'type', 'version', 'author', 'language', 'date', 'architecture', 'platform', 'vip', 'comments', 'tags']
+    list_display = ['name', 'type', 'version', 'author', 'language', 'date', 'architecture', 'platform', 'vip', 'comments', 'tags', 'created_at', 'updated_at']
+    list_editable = ['version', 'language', 'platform', 'vip', 'tags']
+    search_fields = ['name', 'tags', 'language', 'comments']
+    list_select_related = ['uploaded_file']
     list_per_page = 20
 
 

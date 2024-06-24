@@ -46,6 +46,7 @@ class Packet(models.Model):
     protocol = models.CharField(max_length=10)
     payload = models.TextField()
 
+
 class Event(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     message = models.TextField()

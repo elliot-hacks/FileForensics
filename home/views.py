@@ -14,6 +14,8 @@ from io import BytesIO
 from pathlib import Path
 from scapy.layers.l2 import ARP
 from scapy.all import sniff, get_if_list
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from threading import Thread
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -22,6 +24,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -349,10 +352,7 @@ def upload_file(request):
             logger.info(f"Redirecting to analyse with language_name: {language_name}, signatures: {signatures}")
 
             # Redirect to the analysis report page
-            if encoded_signatures:
-                return redirect(reverse('analyse', kwargs={'language_name': encoded_language_name, 'signatures': encoded_signatures}))
-            else:
-                return redirect(reverse('analyse_no_signatures', kwargs={'language_name': encoded_language_name}))
+            return redirect(reverse('list_uploaded_files'))
         else:
             logger.error("UploadFileForm is not valid")
             messages.error(request, form.errors)  # Display form errors
@@ -362,7 +362,7 @@ def upload_file(request):
 
     return render(request, 'malware.html', {'form': form})
 
-    
+
 def detect_file_type(file):
     mime = magic.Magic(mime=True)
     file_type = mime.from_buffer(file.read(1024))
@@ -401,3 +401,60 @@ def submit_report(request):
         return redirect('success_page')  # Redirect to a success page
 
     return render(request, 'submit_report.html')
+
+
+@login_required
+def list_uploaded_files(request):
+    query = request.GET.get('q')
+    file_type_filter = request.GET.get('file_type')
+    files = UploadedFile.objects.all()
+
+    if query:
+        files = files.filter(file__icontains=query)
+    
+    if file_type_filter:
+        files = files.filter(file_type=file_type_filter)
+
+    return render(request, 'list_uploaded_files.html', {'files': files})
+
+
+@login_required
+def edit_report(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id)
+    malware, created = Malware.objects.get_or_create(uploaded_file=uploaded_file)
+
+    if request.method == 'POST':
+        form = MalwareForm(request.POST, instance=malware)
+        if form.is_valid():
+            form.save()
+            return redirect('list_uploaded_files')
+    else:
+        form = MalwareForm(instance=malware)
+
+    return render(request, 'edit_report.html', {'form': form, 'uploaded_file': uploaded_file})
+
+# views.py
+
+@login_required
+def view_report(request, file_id):
+    uploaded_file = get_object_or_404(UploadedFile, id=file_id)
+    try:
+        malware = Malware.objects.get(uploaded_file=uploaded_file)
+    except Malware.DoesNotExist:
+        malware = None
+    
+    return render(request, 'view_report.html', {'uploaded_file': uploaded_file, 'malware': malware})
+
+
+# PDF Reporting
+def generate_pdf_report(file, report_data):
+    file_path = f'{settings.MEDIA_ROOT}/{file.name}_report.pdf'
+    c = canvas.Canvas(file_path, pagesize=letter)
+    c.drawString(100, 750, f"Report for {file.name}")
+    c.drawString(100, 730, f"Uploaded By: {report_data['uploaded_by']}")
+    c.drawString(100, 710, f"Detected Type: {report_data['type']}")
+    c.drawString(100, 690, f"Signatures: {', '.join(report_data['signatures'])}")
+    c.save()
+
+    return file_path
+

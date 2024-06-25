@@ -2,6 +2,11 @@ from django.contrib import admin
 from .import models
 
 
+@admin.register(models.User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['username', 'first_name', 'last_name', 'email', 'password']
+
+
 @admin.register(models.Malware)
 class MalwareSampleAdmin(admin.ModelAdmin):
     list_display = ['name', 'type', 'version', 'author', 'language', 'date', 'architecture', 'platform', 'vip', 'comments', 'tags', 'created_at', 'updated_at']
@@ -14,6 +19,7 @@ class MalwareSampleAdmin(admin.ModelAdmin):
 @admin.register(models.UploadedFile)
 class UploadedFileSampleAdmin(admin.ModelAdmin):
     list_display = ['file', 'uploaded_at', 'uploaded_by', 'analyzed']
+    list_editable = ['analyzed']
     list_select_related = ['uploaded_by']
     # autocomplete_fields = ['uploaded_by']
     list_per_page = 20

@@ -65,15 +65,18 @@ def u_login(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f"You are now logged in as {username}.")
-                # Update the redirect URL as needed
+                
+                if user.is_staff:
+                    return redirect('admin:index')  # Redirect to admin interface for staff
+                return redirect('list_uploaded_files')  # Redirect to home or other page for regular users
             else:
                 messages.error(request, "Invalid username or password.")
         else:
             messages.error(request, "Invalid username or password.")
     else:
         form = AuthenticationForm()
-    return render(request=request, template_name="registration/login.html", context={"login_form": form})
-
+    
+    return render(request, 'registration/login.html', {'login_form': form})
 
 # Network Capture
 def select_interface(request):

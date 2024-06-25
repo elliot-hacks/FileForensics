@@ -4,8 +4,8 @@ from . import views, consumers
 
 urlpatterns = [
     path('', views.index, name="index"),
-    path('register', views.u_register, name="register"),
-    path('login', views.u_login, name="login"),
+    path('register/', views.u_register, name='register'),
+    path('login/', views.u_login, name="login"),
     path('files/', views.list_uploaded_files, name='list_uploaded_files'),
     path('file_statistics', views.file_statistics, name='file_statistics'),
     path('files/<int:file_id>/edit/', views.edit_report, name='edit_report'),

@@ -428,7 +428,7 @@ Mako==1.2.4.dev0
 Markdown==3.4.1
 markdown-it-py==2.1.0
 MarkupSafe==2.1.2
-marshmallow==3.18.0
+marshmallow==3.26.2
 mate-menu==22.4.1
 mate-tweak==22.10.0
 matplotlib==3.6.3

@@ -487,7 +487,7 @@ ply==3.11
 portalocker==2.2.1
 prettytable==3.6.0
 prompt-toolkit==3.0.36
-protobuf==4.21.12
+protobuf==6.33.5
 psutil==5.9.4
 psycopg2==2.9.5
 ptyprocess==0.7.0

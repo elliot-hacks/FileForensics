@@ -329,7 +329,7 @@ colorama==0.4.6
 configobj==5.0.8
 contourpy==1.0.7
 crispy-bootstrap5==2024.2
-cryptography==38.0.4
+cryptography==46.0.5
 cupshelpers==1.0
 cycler==0.11.0
 dbus-python==1.3.2
